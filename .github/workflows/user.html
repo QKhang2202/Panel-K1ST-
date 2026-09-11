@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Panel WormGPT</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;display:flex;justify-content:center;align-items:center;background-image:radial-gradient(ellipse at 10% 20%,rgba(0,255,170,.05) 0%,transparent 50%),radial-gradient(ellipse at 90% 80%,rgba(255,0,100,.05) 0%,transparent 50%)}
+.container{background:rgba(20,20,30,.95);border-radius:28px;padding:40px 35px;width:100%;max-width:420px;border:1px solid rgba(0,255,200,.15);box-shadow:0 25px 60px rgba(0,0,0,.9),0 0 40px rgba(0,255,200,.03)}
+.header{text-align:center;margin-bottom:30px}
+.header .icon{font-size:42px;display:block;margin-bottom:8px}
+.header h1{color:#00ffcc;font-size:24px;font-weight:700;letter-spacing:1px;text-shadow:0 0 20px rgba(0,255,204,.2)}
+.header .sub{color:#666;font-size:13px;margin-top:4px;letter-spacing:2px}
+.login-box{display:block}
+.login-box.hidden{display:none}
+.menu-box{display:none}
+.menu-box.active{display:block}
+.input-group{margin:12px 0}
+.input-group input{width:100%;padding:14px 18px;border-radius:14px;border:1px solid #2a2a3a;background:#12121a;color:#fff;font-size:16px;outline:0;transition:.3s}
+.input-group input:focus{border-color:#00ffcc;box-shadow:0 0 20px rgba(0,255,204,.05)}
+.btn-primary{width:100%;padding:14px;border:0;border-radius:14px;background:linear-gradient(135deg,#00ffcc,#00cc99);color:#0a0a0a;font-size:17px;font-weight:700;cursor:pointer;transition:.3s;margin-top:8px}
+.btn-primary:hover{transform:scale(1.02);box-shadow:0 0 30px rgba(0,255,204,.3)}
+.btn-primary:active{transform:scale(.98)}
+.error{color:#ff4477;font-size:13px;margin-top:10px;text-align:center;min-height:20px}
+.toggle-item{display:flex;justify-content:space-between;align-items:center;background:#12121a;padding:14px 18px;border-radius:14px;margin:8px 0;border:1px solid #1a1a2a;transition:.3s}
+.toggle-item:hover{border-color:#2a2a4a}
+.toggle-item .label{display:flex;align-items:center;gap:10px;color:#ccc;font-size:15px}
+.toggle-item .label .emoji{font-size:18px}
+.toggle-item.active .status{color:#00ff99}
+.switch{position:relative;width:48px;height:26px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#2a2a3a;transition:.4s;border-radius:26px}
+.slider::before{content:"";position:absolute;height:18px;width:18px;left:4px;bottom:4px;background:#555;transition:.4s;border-radius:50%}
+input:checked+.slider{background:linear-gradient(135deg,#00ffcc,#00cc99)}
+input:checked+.slider::before{background:#0a0a0a;transform:translateX(22px)}
+.apply-btn{width:100%;padding:16px;margin-top:18px;border:0;border-radius:14px;background:linear-gradient(135deg,#ff0066,#cc0055);color:#fff;font-size:18px;font-weight:700;cursor:pointer;transition:.3s;box-shadow:0 0 30px rgba(255,0,102,.15)}
+.apply-btn:hover{transform:scale(1.02);box-shadow:0 0 50px rgba(255,0,102,.3)}
+.apply-btn:active{transform:scale(.97)}
+.footer{margin-top:25px;text-align:center;color:#333;font-size:12px;letter-spacing:1px}
+.footer a{color:#00ffcc;text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="container">
+<div class="header">
+<span class="icon">👿</span>
+<h1>PANEL WormGPT</h1>
+<div class="sub">NECROMANCER · RED TEAM</div>
+</div>
+
+<!-- LOGIN -->
+<div class="login-box" id="loginBox">
+<div class="input-group">
+<input type="password" id="passwordInput" placeholder="🔑 Nhập key kích hoạt">
+</div>
+<button class="btn-primary" onclick="login()">▶ UNLOCK</button>
+<div class="error" id="errorMsg"></div>
+</div>
+
+<!-- MENU -->
+<div class="menu-box" id="menuBox">
+<div id="toggleList">
+<div class="toggle-item" data-key="aimlock">
+<span class="label"><span class="emoji">🎯</span> AIM LOCK HEAD</span>
+<label class="switch"><input type="checkbox"><span class="slider"></span></label>
+</div>
+<div class="toggle-item" data-key="smooth">
+<span class="label"><span class="emoji">🌀</span> Sensitivity Max</span>
+<label class="switch"><input type="checkbox"><span class="slider"></span></label>
+</div>
+<div class="toggle-item" data-key="fixover">
+<span class="label"><span class="emoji">🔧</span> Lock Head Hard</span>
+<label class="switch"><input type="checkbox"><span class="slider"></span></label>
+</div>
+<div class="toggle-item" data-key="noshake">
+<span class="label"><span class="emoji">📦</span> Fix No Recoil Max</span>
+<label class="switch"><input type="checkbox"><span class="slider"></span></label>
+</div>
+<div class="toggle-item" data-key="antilag">
+<span class="label"><span class="emoji">🛡️</span> Anti-lag</span>
+<label class="switch"><input type="checkbox"><span class="slider"></span></label>
+</div>
+<div class="toggle-item" data-key="dpi">
+<span class="label"><span class="emoji">🧠</span> DPI Boost Max (10800)</span>
+<label class="switch"><input type="checkbox"><span class="slider"></span></label>
+</div>
+</div>
+
+<button class="apply-btn" onclick="applySettings()">🔥 ÁP DỤNG TẤT CẢ</button>
+
+<div class="footer">
+<span id="statusText">🟢 Sẵn Sàng</span> · 
+<a href="#" onclick="resetAll()">Reset</a> · 
+<a href="index.html">Về trang chủ</a>
+</div>
+</div>
+</div>
+
+<script>
+const STORE="wormgpt_keys";
+
+function login(){
+const input=document.getElementById('passwordInput').value.trim();
+const error=document.getElementById('errorMsg');
+
+if(!input){error.textContent='⚠️ Vui lòng nhập key!';return}
+
+let keys=JSON.parse(localStorage.getItem(STORE)||'[]');
+let found=keys.find(k=>k.key===input);
+
+if(!found){error.textContent='❌ Key không tồn tại!';setTimeout(()=>error.textContent='',2500);return}
+if(found.s==='locked'){error.textContent='🔒 Key đã bị khóa!';setTimeout(()=>error.textContent='',2500);return}
+if(found.s==='expired'){error.textContent='⏰ Key đã hết hạn!';setTimeout(()=>error.textContent='',2500);return}
+if(found.s==='used'){error.textContent='🔴 Key đã được sử dụng!';setTimeout(()=>error.textContent='',2500);return}
+if(found.e && Date.now()>found.e){found.s='expired';localStorage.setItem(STORE,JSON.stringify(keys));error.textContent='⏰ Key đã hết hạn!';setTimeout(()=>error.textContent='',2500);return}
+
+found.s='used';
+found.u=Date.now();
+localStorage.setItem(STORE,JSON.stringify(keys));
+
+document.getElementById('loginBox').classList.add('hidden');
+document.getElementById('menuBox').classList.add('active');
+loadSettings();
+error.textContent='';
+document.getElementById('statusText').textContent='✅ Kích hoạt thành công!';
+}
+
+function loadSettings(){
+const saved=localStorage.getItem('aimlock_settings');
+let settings={};
+if(saved){settings=JSON.parse(saved)}else{document.querySelectorAll('.toggle-item').forEach(item=>{settings[item.dataset.key]=false})}
+document.querySelectorAll('.toggle-item').forEach(item=>{
+const key=item.dataset.key;
+const cb=item.querySelector('input[type="checkbox"]');
+if(settings[key]!==undefined)cb.checked=settings[key];
+cb.addEventListener('change',function(){settings[key]=this.checked;localStorage.setItem('aimlock_settings',JSON.stringify(settings));updateUI(item)});
+updateUI(item)
+});
+}
+
+function updateUI(item){const cb=item.querySelector('input[type="checkbox"]');if(cb.checked){item.classList.add('active')}else{item.classList.remove('active')}}
+
+function applySettings(){
+const btn=document.querySelector('.apply-btn');
+const orig=btn.textContent;
+btn.textContent='⏳ ĐANG TIẾM...';
+btn.disabled=true;
+const settings={};
+document.querySelectorAll('.toggle-item').forEach(item=>{settings[item.dataset.key]=item.querySelector('input[type="checkbox"]').checked});
+localStorage.setItem('aimlock_settings',JSON.stringify(settings));
+setTimeout(()=>{
+btn.textContent='✅ ĐÃ ÁP DỤNG!';
+btn.style.background='linear-gradient(135deg,#00ff99,#00cc77)';
+try{window.location.href='freefiremax://';setTimeout(()=>{window.location.href='freefire://'},300)}catch(e){}
+setTimeout(()=>{btn.textContent=orig;btn.style.background='';btn.disabled=false;document.getElementById('statusText').textContent='✅ Đã áp dụng lúc '+new Date().toLocaleTimeString()},1500)
+},800)
+}
+
+function resetAll(){
+if(confirm('Reset hết về mặc định?')){
+document.querySelectorAll('.toggle-item input[type="checkbox"]').forEach(cb=>cb.checked=false);
+const settings={};
+document.querySelectorAll('.toggle-item').forEach(item=>{settings[item.dataset.key]=false;item.classList.remove('active')});
+localStorage.setItem('aimlock_settings',JSON.stringify(settings));
+document.getElementById('statusText').textContent='🔄 Đã reset';
+}
+}
+
+document.getElementById('passwordInput').addEventListener('keydown',function(e){if(e.key==='Enter')login()});
+</script>
+</body>
+</html>

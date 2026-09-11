@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Quản Lý Key Pro</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;font-family:Arial,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:12px}
+.container{background:rgba(18,18,28,.95);border-radius:24px;padding:20px 18px;max-width:750px;width:100%;border:1px solid rgba(0,255,200,.1)}
+.admin-header{text-align:center;margin-bottom:18px;border-bottom:1px solid #2a2a3a;padding-bottom:12px}
+.admin-header h1{color:#ff0066;font-size:22px}
+.admin-header .sub{color:#888;font-size:12px}
+.key-display{background:#0a0a0a;border:2px solid #00ffcc;border-radius:12px;padding:14px;text-align:center;margin:12px 0;cursor:pointer}
+.key-display .key-text{font-size:22px;font-weight:700;color:#00ffcc;font-family:monospace;letter-spacing:1px;word-break:break-all}
+.key-display .key-label{color:#666;font-size:11px;margin-top:4px}
+.key-list{background:#12121a;border-radius:12px;max-height:380px;overflow-y:auto;margin:8px 0;border:1px solid #1a1a2a}
+.key-list::-webkit-scrollbar{width:4px}
+.key-list::-webkit-scrollbar-thumb{background:#00ffcc;border-radius:4px}
+.key-item{display:grid;grid-template-columns:25px 75px 55px 130px auto;align-items:center;padding:8px 12px;border-bottom:1px solid #1a1a2a;font-size:10px;gap:2px}
+.key-item:last-child{border-bottom:none}
+.key-item .stt{color:#444;font-weight:700;font-size:9px;text-align:center}
+.key-item .k{font-family:monospace;font-weight:600;font-size:10px;cursor:pointer}
+.key-item .k.vip{color:#ff0066}
+.key-item .k.pro{color:#00ff99}
+.key-item .k.max{color:#aa44ff}
+.key-item .status{font-size:7px;padding:1px 5px;border-radius:10px;text-align:center;font-weight:600;white-space:nowrap}
+.key-item .status.active{background:#00ff9933;color:#00ff99}
+.key-item .status.used{background:#ff447733;color:#ff4477}
+.key-item .status.expired{background:#ffaa0033;color:#ffaa00}
+.key-item .status.locked{background:#666633;color:#ffcc00}
+.key-item .time{color:#888;font-size:8px;font-family:monospace;line-height:1.2}
+.key-item .actions{display:flex;gap:16px;align-items:center;justify-content:flex-end}
+.key-item .reset-btn{background:#ffaa00;border:0;border-radius:10px;cursor:pointer;font-size:18px;font-weight:700;padding:8px 18px;color:#000;transition:.3s}
+.key-item .reset-btn:hover{background:#ffcc00;transform:scale(1.08)}
+.key-item .lock-btn{background:#fff;border:0;border-radius:10px;cursor:pointer;font-size:18px;font-weight:700;padding:8px 18px;color:#000;transition:.3s}
+.key-item .lock-btn:hover{background:#00ffcc;transform:scale(1.08)}
+.key-item .del-btn{background:#ff0066;border:0;border-radius:10px;cursor:pointer;font-size:18px;font-weight:700;padding:8px 18px;color:#fff;transition:.3s}
+.key-item .del-btn:hover{background:#ff4477;transform:scale(1.08)}
+.key-header{display:grid;grid-template-columns:25px 75px 55px 130px auto;padding:3px 8px;color:#444;font-size:6px;text-transform:uppercase;border-bottom:2px solid #1a1a2a;font-weight:700}
+.key-header span:last-child{text-align:right}
+.btn-danger{background:linear-gradient(135deg,#ff0066,#cc0055);color:#fff}
+.btn-success{background:linear-gradient(135deg,#00ffcc,#00cc99);color:#0a0a0a}
+.btn-warning{background:linear-gradient(135deg,#ffaa00,#ff8800);color:#0a0a0a}
+.btn-gray{background:#2a2a3a;color:#fff}
+.btn-group{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.btn-group .btn-primary{flex:1;min-width:50px;font-size:10px;padding:8px 4px;border:0;border-radius:10px;cursor:pointer;font-weight:700;transition:.3s;text-align:center}
+.btn-group .btn-primary:hover{transform:scale(1.03)}
+.btn-group .btn-primary:active{transform:scale(.97)}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin:10px 0;color:#888;font-size:10px;background:#12121a;padding:8px;border-radius:12px;text-align:center}
+.stats .stat-num{display:block;color:#fff;font-weight:700;font-size:16px;margin-top:2px}
+.stats .stat-label{font-size:8px;color:#666}
+.admin-login{display:block}
+.admin-login.hidden{display:none}
+.admin-panel{display:none}
+.admin-panel.active{display:block}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#00ffcc;color:#0a0a0a;padding:8px 16px;border-radius:10px;font-weight:700;font-size:12px;z-index:999;opacity:0;transition:.5s;pointer-events:none}
+.toast.show{opacity:1}
+.toast.error{background:#ff4477;color:#fff}
+.filter-bar{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}
+.filter-bar input,.filter-bar select{padding:6px 10px;border-radius:8px;border:1px solid #2a2a3a;background:#12121a;color:#fff;font-size:11px;outline:0;flex:1;min-width:70px}
+.filter-bar input:focus,.filter-bar select:focus{border-color:#00ffcc}
+.filter-bar select{flex:.4;min-width:70px}
+.countdown{font-family:monospace;font-size:8px;font-weight:700;display:block;margin-top:1px}
+.countdown.used{color:#ff4477}
+.countdown.expired{color:#555}
+.countdown.life{color:#00ff99}
+.input-group{margin:8px 0}
+.input-group input{width:100%;padding:10px 14px;border-radius:10px;border:1px solid #2a2a3a;background:#12121a;color:#fff;font-size:14px;outline:0;text-align:center}
+.input-group input:focus{border-color:#00ffcc}
+.btn-primary{width:100%;padding:10px;border:0;border-radius:10px;background:linear-gradient(135deg,#00ffcc,#00cc99);color:#0a0a0a;font-size:15px;font-weight:700;cursor:pointer;transition:.3s;margin-top:4px}
+.btn-primary:hover{transform:scale(1.02)}
+.btn-primary:active{transform:scale(.98)}
+.error{color:#ff4477;font-size:12px;text-align:center;min-height:18px}
+.footer{margin-top:12px;text-align:center;color:#333;font-size:10px}
+.footer a{color:#00ffcc;cursor:pointer;text-decoration:0}
+.popup{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);display:none;justify-content:center;align-items:center;z-index:1000}
+.popup.show{display:flex}
+.popup-content{background:#1a1a2a;border-radius:20px;padding:24px;max-width:420px;width:92%;border:1px solid #00ffcc;max-height:90vh;overflow-y:auto}
+.popup-content h3{color:#00ffcc;margin-bottom:12px;text-align:center;font-size:18px}
+.popup-content label{color:#888;font-size:11px;display:block;margin:6px 0 2px}
+.popup-content input{width:100%;padding:8px 12px;border-radius:8px;border:1px solid #2a2a3a;background:#12121a;color:#fff;font-size:13px;outline:0}
+.popup-content input:focus{border-color:#00ffcc}
+.prefix-group{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.prefix-group .pre-btn{background:#2a2a3a;border:1px solid #444;border-radius:8px;color:#ccc;padding:8px 18px;font-size:13px;cursor:pointer;transition:.3s;font-weight:700}
+.prefix-group .pre-btn:hover{background:#00ffcc33;border-color:#00ffcc;color:#00ffcc;transform:scale(1.05)}
+.prefix-group .pre-btn:active{transform:scale(.95)}
+.prefix-group .pre-btn.vip{background:#ff006633;border-color:#ff0066;color:#ff0066}
+.prefix-group .pre-btn.vip:hover{background:#ff0066;color:#fff}
+.prefix-group .pre-btn.pro{background:#00ff9933;border-color:#00ff99;color:#00ff99}
+.prefix-group .pre-btn.pro:hover{background:#00ff99;color:#000}
+.prefix-group .pre-btn.max{background:#aa44ff33;border-color:#aa44ff;color:#aa44ff}
+.prefix-group .pre-btn.max:hover{background:#aa44ff;color:#fff}
+.popup-content .btn-group-popup{display:flex;gap:10px;margin-top:14px}
+.popup-content .btn-group-popup button{flex:1;padding:10px;border:0;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px}
+.btn-confirm{background:#00ffcc;color:#0a0a0a}
+.btn-cancel{background:#333;color:#fff}
+@media(max-width:600px){
+.key-item{grid-template-columns:18px 45px 40px 80px auto;font-size:7px;gap:1px;padding:3px 4px}
+.key-header{grid-template-columns:18px 45px 40px 80px auto;font-size:5px;padding:2px 4px}
+.key-item .k{font-size:8px}
+.key-item .time{font-size:6px}
+.key-item .stt{font-size:7px}
+.key-item .reset-btn{font-size:14px;padding:4px 10px}
+.key-item .lock-btn{font-size:14px;padding:4px 10px}
+.key-item .del-btn{font-size:14px;padding:4px 10px}
+.key-display .key-text{font-size:16px}
+.btn-group .btn-primary{font-size:8px;padding:6px 3px;min-width:35px}
+.stats{grid-template-columns:repeat(3,1fr);font-size:8px}
+.stats .stat-num{font-size:12px}
+.container{padding:12px 8px}
+.popup-content{padding:16px}
+.prefix-group .pre-btn{font-size:11px;padding:6px 12px}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<div class="toast" id="t"></div>
+
+<!-- POPUP TẠO KEY -->
+<div class="popup" id="popup">
+<div class="popup-content">
+<h3>📅 TẠO KEY MỚI</h3>
+<label>🔑 Chọn Prefix:</label>
+<div class="prefix-group">
+<button class="pre-btn vip" onclick="chonPrefix('VIP')">💎 VIP</button>
+<button class="pre-btn pro" onclick="chonPrefix('PRO')">🚀 PRO</button>
+<button class="pre-btn max" onclick="chonPrefix('MAX')">⚡ MAX</button>
+</div>
+<label>⏰ Ngày hết hạn:</label>
+<input type="datetime-local" id="popupExpire" step="1">
+<label>📝 Ghi chú:</label>
+<input type="text" id="popupNote" placeholder="Ghi chú cho key...">
+<div class="btn-group-popup">
+<button class="btn-confirm" onclick="confirmTaoKey()">✅ TẠO</button>
+<button class="btn-cancel" onclick="huyPopup()">❌ HỦY</button>
+</div>
+</div>
+</div>
+
+<div class="admin-login" id="login">
+<div class="admin-header"><h1>👿 BẢNG ĐIỀU KHIỂN</h1><div class="sub">Quản Lý Key Pro v4.5</div></div>
+<div class="input-group"><input type="password" id="pass" placeholder="🔑 Nhập mật khẩu"></div>
+<button class="btn-primary" onclick="login()">▶ ĐĂNG NHẬP</button>
+<div class="error" id="err"></div>
+<div style="margin-top:10px;text-align:center;color:#333;font-size:10px;"><b style="color:#666;"></b></div>
+</div>
+
+<div class="admin-panel" id="panel">
+<div class="admin-header"><h1>⚙️ QUẢN LÝ KEY PRO</h1><div class="sub">Tạo · Quản lý · Đếm ngược</div></div>
+
+<div class="stats">
+<div><span class="stat-label">📊 Tổng</span><span class="stat-num" id="total">0</span></div>
+<div><span class="stat-label">🟢 Active</span><span class="stat-num" id="active">0</span></div>
+<div><span class="stat-label">🔴 Used</span><span class="stat-num" id="used">0</span></div>
+<div><span class="stat-label">⏰ Hết hạn</span><span class="stat-num" id="expired">0</span></div>
+<div><span class="stat-label">🔒 Khóa</span><span class="stat-num" id="locked">0</span></div>
+</div>
+
+<div class="key-display" id="display"><div class="key-text" id="newkey">------</div><div class="key-label">🖱️ Bấm copy</div></div>
+
+<div class="btn-group">
+<button class="btn-primary btn-success" onclick="moPopup()">🔄 TẠO KEY</button>
+<button class="btn-primary btn-warning" onclick="taoNhieu()">📦 TẠO NHIỀU</button>
+<button class="btn-primary btn-danger" onclick="xoaAll()">🗑️ XÓA HẾT</button>
+<button class="btn-primary btn-gray" onclick="xuat()">📤 XUẤT JSON</button>
+</div>
+
+<div class="filter-bar">
+<input type="text" id="search" placeholder="🔍 Tìm key..." oninput="loc()">
+<select id="filter" onchange="loc()">
+<option value="all">📋 Tất cả</option>
+<option value="active">🟢 Active</option>
+<option value="used">🔴 Used</option>
+<option value="expired">⏰ Hết hạn</option>
+<option value="locked">🔒 Khóa</option>
+</select>
+</div>
+
+<div style="display:flex;justify-content:space-between;color:#666;font-size:10px;padding:0 4px;">
+<span>📋 Danh sách (<span id="count">0</span>)</span>
+</div>
+<div class="key-list" id="list"><div style="color:#444;text-align:center;padding:20px;font-size:13px;">Chưa có key</div></div>
+
+<div class="footer"><a onclick="logout()">Đăng xuất</a> · <span style="color:#333;" id="time"></span></div>
+</div>
+</div>
+
+<script>
+// === CONFIG ===
+const PASS = "2202", STORE = "wormgpt_keys";
+const USETIME = 24*3600*1000;
+const KEY_LENGTH = 11;
+const PREFIX_LIST = ['VIP', 'PRO', 'MAX'];
+let keys = [], search = '', filter = 'all', timer = null;
+let selectedPrefix = '';
+
+// === HELPERS ===
+function now(){return Date.now()}
+function d(ts){return ts?new Date(ts).toLocaleDateString('vi-VN'):'---'}
+function t(ts){return ts?new Date(ts).toLocaleTimeString('vi-VN',{hour12:false}):'---'}
+function clock(){let e=document.getElementById('time');if(e)e.textContent='🕐 '+new Date().toLocaleString('vi-VN',{hour12:false})}
+function cd(ts){if(!ts)return null;let left=USETIME-(Date.now()-ts);if(left<=0)return'⏰ HẾT';let h=Math.floor(left/3600000),m=Math.floor((left%3600000)/60000),s=Math.floor((left%60000)/1000);return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+function timeLeftFull(ts){
+if(!ts)return null;
+let left=ts-Date.now();
+if(left<=0)return'⏰ HẾT HẠN';
+let d=Math.floor(left/86400000);
+let h=Math.floor((left%86400000)/3600000);
+let m=Math.floor((left%3600000)/60000);
+let s=Math.floor((left%60000)/1000);
+return d+'d '+String(h).padStart(2,'0')+'h '+String(m).padStart(2,'0')+'m '+String(s).padStart(2,'0')+'s';
+}
+
+// === LẤY MÀU PREFIX ===
+function getPrefixClass(key){
+if(key.startsWith('VIP')) return 'vip';
+if(key.startsWith('PRO')) return 'pro';
+if(key.startsWith('MAX')) return 'max';
+return '';
+}
+
+// === POPUP ===
+let popupData={};
+function chonPrefix(p){
+selectedPrefix = p;
+document.querySelectorAll('.pre-btn').forEach(b=>b.style.opacity='0.4');
+document.querySelectorAll('.pre-btn').forEach(b=>{
+if(b.textContent.includes(p)) b.style.opacity='1';
+});
+}
+function moPopup(){
+document.getElementById('popup').classList.add('show');
+let now=new Date();
+let expire=new Date(now.getTime()+7*86400000);
+document.getElementById('popupExpire').value=expire.toISOString().slice(0,16);
+document.getElementById('popupNote').value='';
+selectedPrefix = '';
+document.querySelectorAll('.pre-btn').forEach(b=>b.style.opacity='1');
+}
+function huyPopup(){document.getElementById('popup').classList.remove('show')}
+function confirmTaoKey(){
+if(!selectedPrefix){toast('⚠️ Chọn prefix VIP, PRO hoặc MAX!',1);return}
+let expire=new Date(document.getElementById('popupExpire').value);
+let note=document.getElementById('popupNote').value.trim();
+if(isNaN(expire.getTime())){toast('⚠️ Chọn ngày hết hạn!',1);return}
+if(expire.getTime()<=Date.now()){toast('⚠️ Ngày hết hạn phải trong tương lai!',1);return}
+popupData={prefix:selectedPrefix,expire:expire.getTime(),note};
+huyPopup();
+taoKey();
+}
+function taoKey(){
+let p=popupData.prefix;
+let expire=popupData.expire;
+let note=popupData.note||'';
+let c='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',key='';
+for(let i=0;i<KEY_LENGTH;i++)key+=c[Math.floor(Math.random()*c.length)];
+let finalKey = p + key;
+if(keys.some(k=>k.key==finalKey)){taoKey();return}
+let nk={id:'k_'+now()+'_'+Math.random().toString(36).substr(2,4),key:finalKey,s:'active',c:now(),u:null,e:expire,note:note};
+keys.push(nk);save();document.getElementById('newkey').textContent=finalKey;render();stats();toast('✅ '+finalKey);return finalKey;
+}
+
+// === STORAGE ===
+function load(){
+let s=localStorage.getItem(STORE);
+if(s){try{keys=JSON.parse(s);let n=Date.now();keys=keys.filter(k=>!(k.s=='expired'&&(n-k.c)>EXPIRE*2));keys.forEach(k=>{if(k.s=='active'&&k.e&&n>k.e)k.s='expired';if(k.s=='used'&&k.u&&(n-k.u)>USETIME)k.s='expired'});save()}catch(e){keys=def()}}else{keys=def();save()}}
+function def(){let n=now();return[{id:'k1',key:'VIP2025X9M7K',s:'active',c:n-3600000,u:null,e:n+7*86400000,note:''},{id:'k2',key:'PROMAXA8B4C',s:'active',c:n-7200000,u:null,e:n+14*86400000,note:''},{id:'k3',key:'MAX2025Z3N8Q',s:'used',c:n-86400000,u:n-43200000,e:n+3*86400000,note:''}]}
+function save(){localStorage.setItem(STORE,JSON.stringify(keys))}
+
+// === TẠO NHIỀU ===
+function taoNhieu(){
+let n=prompt('Số lượng (1-20):','5');
+if(n===null){toast('❌ Đã hủy',1);return}
+let sl=parseInt(n);
+if(isNaN(sl)||sl<1||sl>20){toast('⚠️ 1-20',1);return}
+let ngay=prompt('Số ngày hết hạn (mặc định 7):','7');
+if(ngay===null){toast('❌ Đã hủy',1);return}
+let soNgay=parseInt(ngay)||7;
+if(soNgay<1||soNgay>365){toast('⚠️ 1-365 ngày',1);return}
+let expire=Date.now()+soNgay*86400000;
+for(let i=0;i<sl;i++){
+let p=PREFIX_LIST[Math.floor(Math.random()*3)];
+let c='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',key='';
+for(let j=0;j<KEY_LENGTH;j++)key+=c[Math.floor(Math.random()*c.length)];
+let finalKey = p + key;
+if(keys.some(k=>k.key==finalKey)){i--;continue}
+let nk={id:'k_'+now()+'_'+Math.random().toString(36).substr(2,4),key:finalKey,s:'active',c:now(),u:null,e:expire,note:'Tạo hàng loạt'};
+keys.push(nk);
+}
+save();render();stats();toast('📦 Đã tạo '+sl+' key');
+}
+
+// === LOCK/DELETE ===
+function lock(id){
+let k=keys.find(x=>x.id==id);if(!k)return;
+if(k.s=='locked'){k.s='active';toast('🔓 Mở khóa: '+k.key)}
+else if(k.s=='active'||k.s=='used'){k.s='locked';toast('🔒 Khóa: '+k.key)}
+else{toast('⚠️ Không thể khóa',1);return}
+save();render();stats()
+}
+function del(id){
+if(!confirm('Xóa key này?'))return;
+keys=keys.filter(x=>x.id!=id);
+save();render();stats();toast('🗑️ Đã xóa')
+}
+function xoaAll(){if(!confirm('Xóa HẾT?'))return;if(!confirm('Chắc chắn?'))return;keys=[];save();render();stats();document.getElementById('newkey').textContent='------';toast('🗑️ Đã xóa hết')}
+
+// === RESET 1 KEY ===
+function resetOneKey(id){
+let k=keys.find(x=>x.id==id);
+if(!k)return;
+if(k.s!='used'){toast('⚠️ Key không ở trạng thái Used',1);return}
+k.s='active';
+k.u=null;
+save();render();stats();toast('🔄 Đã reset key '+k.key+' từ Used sang Active');
+}
+
+// === CHECK ===
+function check(input){
+let found=keys.find(k=>k.key===input && k.s==='active');
+if(found){
+if(found.e&&Date.now()>found.e){found.s='expired';save();render();stats();toast('⏰ Key đã hết hạn!',1);return 0}
+found.s='used';found.u=now();save();render();stats();toast('✅ Key hợp lệ! '+found.key,0);return 1}
+if(keys.find(k=>k.key===input&&k.s==='locked')){toast('🔒 Key đã khóa!',1);return 0}
+if(keys.find(k=>k.key===input&&k.s==='expired')){toast('⏰ Key hết hạn!',1);return 0}
+toast('❌ Key không tồn tại!',1);return 0
+}
+
+// === EXPORT ===
+function xuat(){
+let data={time:new Date().toLocaleString('vi-VN',{hour12:false}),total:keys.length,stats:{active:keys.filter(k=>k.s=='active').length,used:keys.filter(k=>k.s=='used').length,expired:keys.filter(k=>k.s=='expired').length,locked:keys.filter(k=>k.s=='locked').length},keys:keys.map(k=>({key:k.key,status:k.s,expire:k.e?new Date(k.e).toLocaleString('vi-VN',{hour12:false}):'Vĩnh viễn',created:k.c?new Date(k.c).toLocaleString('vi-VN',{hour12:false}):null,used:k.u?new Date(k.u).toLocaleString('vi-VN',{hour12:false}):null,note:k.note||''}))};
+let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='keys_'+now()+'.json';a.click();toast('📤 Đã xuất '+keys.length+' key')
+}
+
+// === RENDER ===
+function render(){
+let container=document.getElementById('list'),count=document.getElementById('count');
+let f=[...keys];
+if(filter!='all')f=f.filter(k=>k.s==filter);
+if(search)f=f.filter(k=>k.key.toLowerCase().includes(search));
+f.sort((a,b)=>{let p={active:0,locked:1,used:2,expired:3};return(p[a.s]||4)-(p[b.s]||4)||b.c-a.c});
+count.textContent=f.length;
+if(!f.length){container.innerHTML='<div style="color:#444;text-align:center;padding:20px;font-size:13px;">🔍 Không tìm thấy</div>';return}
+let html='<div class="key-header"><span>#</span><span>🔑 KEY</span><span>STATUS</span><span>⏰ THỜI GIAN</span><span></span></div>';
+f.forEach((k,i)=>{
+let stt=i+1;
+let cls=k.s,txt={active:'🟢 Active',used:'🔴 Used',expired:'⏰ Hết hạn',locked:'🔒 Khóa'}[k.s]||k.s;
+let prefixClass=getPrefixClass(k.key);
+let ts='📅 '+d(k.c)+' '+t(k.c);
+let cdt='',cdt2='';
+if(k.e){
+let full=timeLeftFull(k.e);
+if(full&&full!=='⏰ HẾT HẠN'){cdt2='<span class="countdown life">⏳ '+full+'</span>';}
+else if(full==='⏰ HẾT HẠN'){if(k.s=='active'){k.s='expired';save();render();stats();}cdt2='<span class="countdown expired">⏰ HẾT HẠN</span>';}
+}
+if(k.s=='used'&&k.u){let c=cd(k.u);if(c&&c!='⏰ HẾT'){cdt='<span class="countdown used">⏳ '+c+'</span>';}else if(c=='⏰ HẾT'){cdt='<span class="countdown expired">⏰ HẾT</span>';if(k.s=='used'){k.s='expired';save();render();stats()}}ts='✅ '+d(k.u)+' '+t(k.u);}
+let resetBtn='';
+if(k.s=='used'){resetBtn='<button class="reset-btn" onclick="resetOneKey(\''+k.id+'\')" title="Reset Used → Active">🔄</button>';}
+html+='<div class="key-item"><span class="stt">'+stt+'</span><span class="k '+prefixClass+'" onclick="copy(\''+k.key+'\')">'+k.key+'</span><span class="status '+cls+'">'+txt+'</span><span class="time">'+ts+' '+cdt+' '+cdt2+'</span><span class="actions">'+resetBtn+'<button class="lock-btn" onclick="lock(\''+k.id+'\')">'+(k.s=='locked'?'🔓':'🔒')+'</button><button class="del-btn" onclick="del(\''+k.id+'\')">✕</button></span></div>';
+});
+container.innerHTML=html;
+}
+
+function stats(){
+let total=keys.length,active=keys.filter(k=>k.s=='active').length,used=keys.filter(k=>k.s=='used').length,expired=keys.filter(k=>k.s=='expired').length,locked=keys.filter(k=>k.s=='locked').length;
+document.getElementById('total').textContent=total;document.getElementById('active').textContent=active;document.getElementById('used').textContent=used;document.getElementById('expired').textContent=expired;document.getElementById('locked').textContent=locked;
+}
+function loc(){search=document.getElementById('search').value.toLowerCase();filter=document.getElementById('filter').value;render()}
+
+// === TOAST ===
+function toast(m,e=0){let t=document.getElementById('t');t.textContent=m;t.className='toast show'+(e?' error':'');clearTimeout(t._t);t._t=setTimeout(()=>t.className='toast',2500)}
+
+// === COPY ===
+function copy(t){if(!t||t==='------')return;if(navigator.clipboard)navigator.clipboard.writeText(t).catch(()=>fallback(t));else fallback(t);toast('✅ Đã copy: '+t)}
+function fallback(t){let ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta)}
+
+// === COUNTDOWN LOOP ===
+function startCD(){
+if(timer)clearInterval(timer);
+timer=setInterval(()=>{
+let need=0;
+keys.forEach(k=>{
+if(k.s=='active'&&k.e&&Date.now()>k.e){k.s='expired';need=1}
+if(k.s=='used'&&k.u){let left=USETIME-(Date.now()-k.u);if(left<=0&&k.s!='expired'){k.s='expired';need=1}}
+});
+if(need){save();render();stats()}
+document.querySelectorAll('.countdown.life, .countdown.used').forEach(el=>{
+let parent=el.closest('.key-item');
+if(parent){
+let keyText=parent.querySelector('.k')?.textContent;
+if(keyText){
+let k=keys.find(x=>x.key==keyText);
+if(k){
+if(el.classList.contains('life')&&k.e){
+let full=timeLeftFull(k.e);
+if(full&&full!=='⏰ HẾT HẠN'){el.textContent='⏳ '+full;}
+else if(full==='⏰ HẾT HẠN'){el.textContent='⏰ HẾT HẠN';el.className='countdown expired';if(k.s=='active'){k.s='expired';save();render();stats();}}
+}
+if(el.classList.contains('used')&&k.s=='used'&&k.u){
+let c=cd(k.u);
+if(c){el.textContent='⏳ '+c;if(c=='⏰ HẾT'){el.className='countdown expired';if(k.s=='used'){k.s='expired';save();render();stats();}}}
+}
+}
+}
+}
+});
+},1000);
+}
+
+// === LOGIN/LOGOUT ===
+function login(){
+let input=document.getElementById('pass').value,err=document.getElementById('err');
+if(input===PASS){
+document.getElementById('login').classList.add('hidden');
+document.getElementById('panel').classList.add('active');
+err.textContent='';load();render();stats();startCD();clock();setInterval(clock,1000);
+}else{err.textContent='❌ Sai mật khẩu!';setTimeout(()=>err.textContent='',2000)}
+}
+function logout(){
+document.getElementById('login').classList.remove('hidden');
+document.getElementById('panel').classList.remove('active');
+document.getElementById('pass').value='';
+if(timer)clearInterval(timer);toast('👋 Đã đăng xuất')
+}
+
+// === INIT ===
+document.addEventListener('DOMContentLoaded',function(){
+document.getElementById('pass').addEventListener('keydown',function(e){if(e.key=='Enter')login()});
+document.getElementById('display').addEventListener('click',function(){
+let t=document.getElementById('newkey').textContent;
+if(t&&t!=='------'){copy(t);toast('✅ Đã copy: '+t)}
+});
+});
+
+// === GLOBAL ===
+window.moPopup=moPopup;window.huyPopup=huyPopup;window.confirmTaoKey=confirmTaoKey;
+window.chonPrefix=chonPrefix;
+window.taoNhieu=taoNhieu;window.del=del;window.xoaAll=xoaAll;window.lock=lock;
+window.xuat=xuat;window.loc=loc;window.login=login;window.logout=logout;
+window.check=check;window.copy=copy;window.resetOneKey=resetOneKey;
+</script>
+</body>
+</html>
